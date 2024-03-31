@@ -1,5 +1,5 @@
 ﻿// OOPLab2Tpl.cpp : Этот файл содержит функцию "main". Здесь начинается и заканчивается выполнение программы.
-//
+//test 1
 
 #include <iostream>
 using namespace std;
