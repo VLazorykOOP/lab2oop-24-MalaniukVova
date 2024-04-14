@@ -1,69 +1,99 @@
 ﻿#include <iostream>
-#include <iostream>
 #include <string>
-#include <bitset>
+#include <iomanip> // для використання std::setw та std::setfill
+using namespace std;
 
-// Функція шифрування тексту у двобайтовий формат 
-//Це 2 завдання
-std::string encryptText(std::string text) {
-    std::string encryptedText;
+string encryptText(const string& text) {
+    // Доповнюємо текст пробілами до 128 символів
+    string paddedText = text;
+    paddedText.resize(128, ' ');
 
-    for (char c : text) {
-        // ASCII код символу
+    // Шифруємо кожен символ у два байти
+    string encryptedText;
+    for (char c : paddedText) {
+        // Отримуємо ASCII-код символу
         int asciiCode = static_cast<int>(c);
-        // Позиція символу в рядку
-        int position = encryptedText.length() % 128;
 
-        // Молодша частина ASCII коду (4 біти)
-        int lowerASCII = asciiCode & 0b1111;
-        // Старша частина ASCII коду (4 біти)
-        int upperASCII = (asciiCode >> 4) & 0b1111;
-        // Позиція символу в рядку (7 біт)
-        int posBits = position & 0b1111111;
+        // Отримуємо позицію символу в рядку (додаємо 1, оскільки позиція починається з 1)
+        int position = 0;
+        for (char ch : paddedText) {
+            position++;
+            if (ch == c) break;
+        }
+        position = (position - 1) % 128 + 1; // Циклічна зміна позиції у межах 1-128
 
-        // Біт парності для молодшої та старшої частин ASCII коду
-        int parityBit = (lowerASCII + upperASCII + posBits) % 2;
+        // Формуємо два байти згідно зі структурою
+        char byte1 = static_cast<char>((asciiCode & 0x0F) | ((position << 4) & 0x7F));
+        char byte2 = static_cast<char>((asciiCode >> 4) | (((position >> 3) & 0x78) | ((position << 1) & 0x80)));
 
-        // Формуємо перший байт (біти 0-7)
-        int firstByte = (lowerASCII << 4) | posBits;
-        // Формуємо другий байт (біти 8-15)
-        int secondByte = (upperASCII << 4) | parityBit;
-
-        // Додаємо шифрований символ у двобайтовому форматі до результату
-        encryptedText += static_cast<char>(firstByte);
-        encryptedText += static_cast<char>(secondByte);
+        // Додаємо байти до зашифрованого тексту
+        encryptedText += byte1;
+        encryptedText += byte2;
     }
 
     return encryptedText;
 }
 
+string decryptText(const string& encryptedText) {
+    string decryptedText;
+    for (size_t i = 0; i < encryptedText.length(); i += 2) {
+        char byte1 = encryptedText[i];
+        char byte2 = encryptedText[i + 1];
+
+        // Відновлюємо ASCII-код символу та позицію з байтів
+        int asciiCode = ((byte2 & 0x0F) << 4) | ((byte1 & 0x0F));
+        int position = ((byte2 & 0x70) >> 1) | ((byte1 & 0x78) >> 4);
+
+        // Відновлюємо символ з ASCII-коду та позиції
+        char decryptedChar = static_cast<char>(asciiCode);
+        decryptedText += decryptedChar;
+    }
+
+    return decryptedText;
+}
+
+void printHex(const string& text) {
+    cout << "Tekst (u heksadecimal'nykh znachennyakh): ";
+    for (char c : text) {
+        cout << setw(2) << setfill('0') << hex << static_cast<int>(c) << " ";
+    }
+    cout << endl;
+}
+
 auto Task1()
 {       
-        int main() {
-        int a, c, d;
-        std::cout << "Enter values for a, c, d: ";
-        std::cin >> a >> c >> d;
-
-        int result = ((200 * a + 312 * c) / 16) - d * 120 + c * 124;
-
-        std::cout << "Result: " << result << std::endl;
-
-        return 0;
+    int a, b, c, d;
+    int result;
+    float check_res;
+    cout << " Calculation of expressions using bitwise operations  \n";
+    cout << "Enter A:";
+    cin >> a;
+    cout << "Enter B:";
+    cin >> b;
+    cout << "Enter C:";
+    cin >> c;
+    cout << "Enter D:";
+    cin >> d;
+    result = ((((a << 7) + (a << 6) + (a << 3)) + ((c << 3) + (c << 4) + (c << 5) + (c << 8))) >> 4) - ((d << 7) - (d << 3)) + ((c << 7) - (c << 2));
+    cout << "Result:" << result << endl;
+    check_res = ((a * 200 + c * 312) / 16) - d * 120 + c * 124;
+    printf("Check result: %0.5f", check_res);
     }
 }
 auto Task2()
 {
     int main() {
-        std::string word;
-        std::cout << "Enter a word to encrypt: ";
-        std::cin >> word;
+        string inputText;
+        cout << "Vvedit' tekst dlya shifruvannya (do 128 symboliv): ";
+        getline(cin, inputText);
 
-        std::string encryptedWord = encryptText(word);
+        string encrypted = encryptText(inputText);
+        printHex(encrypted);
 
-        std::cout << "Encrypted Word:\n" << encryptedWord << std::endl;
+        string decrypted = decryptText(encrypted);
+        cout << "Deshifrovanyy tekst: " << decrypted << endl;
 
         return 0;
-    }
 
 }
 auto Task3()
